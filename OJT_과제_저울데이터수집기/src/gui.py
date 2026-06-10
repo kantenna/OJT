@@ -9,6 +9,7 @@ gui.py — Tkinter 화면 담당
 """
 
 import queue
+import logging
 import tkinter as tk
 from tkinter import ttk
 
@@ -17,6 +18,9 @@ from serial.tools import list_ports
 from serial_reader import SerialReader
 import parser
 import clipboard_util
+import config_manager
+
+log = logging.getLogger("gui")
 
 
 class ScaleApp:
@@ -24,6 +28,7 @@ class ScaleApp:
         self.root = root
         self.reader = None       # 시작 버튼을 누르면 SerialReader 객체가 들어간다
         self.last_copied = None  # 같은 무게를 매번 다시 복사하지 않도록 마지막 복사값 기억
+        self.config = config_manager.load_config()  # config.json 읽기 (없으면 기본값)
 
         root.title("저울 데이터 수집기")
         root.geometry("360x340")
@@ -45,8 +50,9 @@ class ScaleApp:
         self.status_label.pack()
 
         # --- 자동복사 켜기/끄기 + 복사 안내 ---
-        self.autocopy_var = tk.BooleanVar(value=True)  # 기본 켜짐
-        ttk.Checkbutton(root, text="안정될 때 자동 복사", variable=self.autocopy_var).pack(pady=2)
+        self.autocopy_var = tk.BooleanVar(value=self.config["copy_only_when_stable"])
+        ttk.Checkbutton(root, text="안정될 때 자동 복사", variable=self.autocopy_var,
+                        command=self._save_settings).pack(pady=2)
         self.copy_label = ttk.Label(root, text="", font=("Segoe UI", 10), foreground="blue")
         self.copy_label.pack()
 
@@ -55,7 +61,7 @@ class ScaleApp:
         btns.pack()
         self.start_btn = ttk.Button(btns, text="시작", command=self.start)
         self.start_btn.pack(side="left", padx=5)
-        self.stop_btn = ttk.Button(btns, text="정지", command=self.stop, state="disabled")
+        self.stop_btn = ttk.Button(btns, text="정지", command=self._stop_clicked, state="disabled")
         self.stop_btn.pack(side="left", padx=5)
 
         self.refresh_ports()
@@ -71,23 +77,33 @@ class ScaleApp:
         ports = [p.device for p in list_ports.comports()]
         self.port_box["values"] = ports
         if ports and not self.port_box.get():
-            self.port_box.current(0)  # 첫 번째 포트를 기본 선택
+            # config 에 저장된 포트가 목록에 있으면 그걸, 없으면 첫 번째를 기본 선택
+            saved = self.config.get("port", "")
+            self.port_box.set(saved if saved in ports else ports[0])
 
     def start(self):
         """시작 버튼: 선택한 포트로 수신 스레드를 띄운다."""
         port = self.port_box.get()
         if not port:
             self.status_label.config(text="포트를 선택하세요", foreground="red")
+            log.warning("시작 시도했으나 포트가 선택되지 않음")
             return
         self.last_copied = None  # 새로 시작하면 복사 기록 초기화
-        self.reader = SerialReader(port, 9600)
+        self._save_settings()    # 고른 포트/설정을 config.json 에 기억
+        log.info("시작 요청: %s", port)
+        self.reader = SerialReader(port, self.config["baudrate"])
         self.reader.start()
         self.start_btn.config(state="disabled")
         self.stop_btn.config(state="normal")
         self.status_label.config(text=f"{port} 수신 중...", foreground="black")
 
+    def _stop_clicked(self):
+        """정지 버튼: 사용자가 의도적으로 멈춘 경우(로그에 '사용자 정지'로 남김)."""
+        log.info("사용자 정지")
+        self.stop()
+
     def stop(self):
-        """정지 버튼: 수신 스레드를 멈춘다."""
+        """수신 스레드를 멈춘다. (버튼/에러 양쪽에서 공통으로 쓰는 정리 동작)"""
         if self.reader:
             self.reader.stop()
             self.reader = None
@@ -107,8 +123,10 @@ class ScaleApp:
                     if isinstance(item, parser.ScaleReading):
                         self._update_display(item)
                     else:  # ("error", 메시지)
+                        log.warning("에러로 수신 중지: %s", item[1])
                         self.status_label.config(text=f"에러: {item[1]}", foreground="red")
-                        self.stop()
+                        self.stop()       # self.reader 가 None 이 됨
+                        break             # 루프 빠져나가기 (None.queue 접근 방지)
             except queue.Empty:
                 pass  # 큐가 비면 그냥 넘어간다 (멈추지 않음!)
 
@@ -138,8 +156,15 @@ class ScaleApp:
         self.last_copied = weight
         self.copy_label.config(text=f"복사됨: {text}  (ERP에서 Ctrl+V)")
 
+    def _save_settings(self):
+        """현재 선택한 포트와 자동복사 설정을 config.json 에 저장한다."""
+        self.config["port"] = self.port_box.get()
+        self.config["copy_only_when_stable"] = self.autocopy_var.get()
+        config_manager.save_config(self.config)
+
     def on_close(self):
-        """창을 닫을 때 수신 스레드 정리 후 종료."""
+        """창을 닫을 때 설정을 저장하고 수신 스레드 정리 후 종료."""
+        self._save_settings()
         if self.reader:
             self.reader.stop()
         self.root.destroy()

@@ -1,0 +1,12 @@
+# Python 컴파일 캐시 (자동 생성물)
+__pycache__/
+*.pyc
+
+# 런타임 로그 (실행 중 생성 — 폴더 구조는 .gitkeep 으로 유지)
+# 하위 폴더 어디에 있든 .log 는 모두 무시
+*.log
+
+# PyInstaller 빌드 산출물 (9단계 배포 시)
+build/
+dist/
+*.spec
