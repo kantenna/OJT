@@ -26,13 +26,14 @@
 ├── src/                          # 소스 코드 (역할별 분리)
 │   ├── main.py                   # 진입점
 │   ├── serial_reader.py          # 시리얼 수신 (백그라운드 스레드)
-│   ├── parser.py                 # 무게 추출 (정규식)
+│   ├── scale_parser.py           # 무게 추출 + 체크섬 검증
 │   ├── gui.py                    # Tkinter 화면
 │   ├── clipboard_util.py         # 클립보드 복사
 │   ├── config_manager.py         # 설정 파일 읽기/쓰기
-│   └── app_logger.py             # 로깅 설정 (파일 + 콘솔)
+│   ├── app_logger.py             # 로깅 설정 (파일 + 콘솔)
+│   └── paths.py                  # 실행 환경별 기준 경로 (소스/배포)
 ├── simulator/
-│   └── scale_simulator.py        # 파이썬 가상 저울 (가상 포트로 테스트)
+│   └── simulator.py              # 파이썬 가상 저울 (가상 포트로 테스트)
 ├── arduino_scale_simulator/
 │   └── arduino_scale_simulator.ino   # 아두이노 스케치 (실물 신호 검증)
 ├── logs/                         # 로그 출력 폴더 (.log 는 git 제외)
@@ -108,14 +109,15 @@ python src/main.py
 만든 뒤, 터미널 2개로 송신/수신을 분리해 실행한다.
 
 ```
-# 터미널 A — 저울 역할(송신)
-python simulator/scale_simulator.py COM5
+# 터미널 A — 저울 역할(송신, 체크섬 포함 CAS 형식)
+python simulator/simulator.py COM4
 
-# 터미널 B — 내 프로그램(COM6 수신)
+# 터미널 B — 내 프로그램(반대쪽 COM5 수신)
 python src/main.py
 ```
 
-> 인자 없이 실행하면 현재 PC의 COM 포트 목록을 보여준다: `python simulator/scale_simulator.py`
+> 시뮬레이터는 `scale_parser.append_checksum()` 으로 NMEA 체크섬을 붙여 보내고,
+> 수신측 `parse_weight()` 가 이를 검증한다(체크섬 없는 신호도 하위호환으로 허용).
 
 ## 실물 신호 검증 (아두이노)
 

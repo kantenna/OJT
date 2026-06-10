@@ -22,7 +22,7 @@ import threading
 import serial                       # pyserial (설치: pip install pyserial)
 from serial.tools import list_ports  # 연결된 COM 포트 목록 조회용
 
-import parser                       # 같은 src 폴더의 parser.py (무게 추출 담당)
+import scale_parser                 # 같은 src 폴더의 scale_parser.py (무게 추출 담당)
 
 
 def show_ports():
@@ -79,7 +79,7 @@ class SerialReader:
                     if not raw:
                         continue                    # 1초간 데이터 없으면 깃발 다시 확인
                     line = raw.decode("ascii", errors="replace").strip()
-                    reading = parser.parse_line(line)
+                    reading = scale_parser.parse_weight(line)
                     if reading is not None:
                         self.queue.put(reading)     # 결과를 큐에 넣음
             # while 가 정상적으로 끝남 = 사용자가 stop() 으로 깃발을 내린 경우
@@ -103,9 +103,9 @@ if __name__ == "__main__":
     try:
         while True:
             item = reader.queue.get()   # 큐에서 하나 꺼낼 때까지 대기
-            if isinstance(item, parser.ScaleReading):
+            if isinstance(item, scale_parser.WeightData):
                 status = "안정" if item.stable else "흔들림"
-                print(f"무게: {item.weight} {item.unit}  [{status}]")
+                print(f"무게: {item.text} {item.unit}  [{status}]")
             else:
                 # ("error", 메시지) 형태
                 print(f"[에러] {item[1]}")

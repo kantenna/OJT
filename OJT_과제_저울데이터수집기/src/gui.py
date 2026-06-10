@@ -16,7 +16,7 @@ from tkinter import ttk
 from serial.tools import list_ports
 
 from serial_reader import SerialReader
-import parser
+import scale_parser
 import clipboard_util
 import config_manager
 
@@ -120,7 +120,7 @@ class ScaleApp:
             try:
                 while True:  # 큐가 빌 때까지 한 번에 비운다 (최신 값으로 갱신)
                     item = self.reader.queue.get_nowait()
-                    if isinstance(item, parser.ScaleReading):
+                    if isinstance(item, scale_parser.WeightData):
                         self._update_display(item)
                     else:  # ("error", 메시지)
                         log.warning("에러로 수신 중지: %s", item[1])
@@ -135,25 +135,25 @@ class ScaleApp:
 
     def _update_display(self, reading):
         """무게/상태 라벨을 갱신하고, 안정 상태면 자동 복사한다."""
-        self.weight_label.config(text=f"{reading.weight} {reading.unit}")
+        self.weight_label.config(text=f"{reading.text} {reading.unit}")
         if reading.stable:
             self.status_label.config(text="● 안정", foreground="green")
-            self._maybe_copy(reading.weight)
+            self._maybe_copy(reading)
         else:
             self.status_label.config(text="● 흔들림", foreground="orange")
 
-    def _maybe_copy(self, weight):
+    def _maybe_copy(self, reading):
         """
         안정 상태일 때 무게를 클립보드에 복사한다.
         단, 자동복사가 켜져 있고 + 직전과 값이 다를 때만 (같은 값 반복 복사 방지).
         """
         if not self.autocopy_var.get():
             return
-        if weight == self.last_copied:
+        text = reading.text          # 불필요한 0 정리된 무게 문자열 (예: "37.39")
+        if text == self.last_copied:
             return  # 이미 복사한 값과 같으면 건너뜀
-        text = str(weight)
         clipboard_util.copy_to_clipboard(self.root, text)
-        self.last_copied = weight
+        self.last_copied = text
         self.copy_label.config(text=f"복사됨: {text}  (ERP에서 Ctrl+V)")
 
     def _save_settings(self):
