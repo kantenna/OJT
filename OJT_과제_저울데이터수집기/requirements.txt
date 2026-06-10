@@ -1,0 +1,6 @@
+# 설치: pip install -r requirements.txt
+pyserial        # 시리얼(COM 포트) 통신
+pyperclip       # 클립보드 복사 (선택 — Tkinter 내장 기능으로 대체 가능)
+pyinstaller     # exe 배포 (마지막 단계에서만 필요)
+
+# Tkinter, re, threading, queue, json, logging 은 Python 기본 내장이라 설치 불필요
