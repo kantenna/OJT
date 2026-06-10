@@ -45,20 +45,9 @@ python src/main.py
 
 ## 하드웨어 없이 테스트 (시뮬레이터)
 
-저울/아두이노 없이 파이썬만으로 저울 신호를 흉내 낸다.
-
-**(A) 파이프라인 자동 검증 — 가상 포트 도구도 불필요**
-
-pyserial 내장 루프백(`loop://`)으로 송신→수신→파싱이 도는지 한 번에 확인.
-
-```
-python simulator/loopback_test.py
-```
-
-**(B) 실제 송수신 테스트 — 가상 포트 쌍 필요**
-
-[com0com](https://sourceforge.net/projects/com0com/) 으로 가상 포트 쌍(예: COM5↔COM6)을 만든 뒤,
-터미널 2개로 송신/수신을 분리해 실행한다.
+저울 없이 파이썬 시뮬레이터로 저울 신호를 흉내 낸다.
+[com0com](https://sourceforge.net/projects/com0com/) 등으로 가상 포트 쌍(예: COM5↔COM6)을
+만든 뒤, 터미널 2개로 송신/수신을 분리해 실행한다.
 
 ```
 # 터미널 A — 저울 역할(송신)
@@ -69,6 +58,7 @@ python src/main.py
 ```
 
 > 인자 없이 실행하면 현재 PC의 COM 포트 목록을 보여준다: `python simulator/scale_simulator.py`
+> 실물 신호 검증은 `arduino_scale_simulator/` 의 아두이노 스케치로 수행한다.
 
 ## 개발 순서
 
