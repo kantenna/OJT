@@ -16,9 +16,10 @@ import os
 import logging
 from datetime import datetime
 
-# 로그 폴더: 이 파일(src/app_logger.py) 기준 한 단계 위의 logs/
-_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOG_DIR = os.path.join(_ROOT, "logs")
+import paths   # 실행 환경(소스/배포)에 맞는 기준 폴더 제공
+
+# 로그 폴더: 소스 실행=프로젝트 루트/logs, 배포(exe)=exe 옆 logs/
+LOG_DIR = os.path.join(paths.base_dir(), "logs")
 
 
 def setup_logging(level=logging.INFO):

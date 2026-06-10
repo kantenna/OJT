@@ -17,11 +17,12 @@ import os
 import json
 import logging
 
+import paths   # 실행 환경(소스/배포)에 맞는 기준 폴더 제공
+
 log = logging.getLogger("config")
 
-# 설정 파일 위치: 이 파일(src/config_manager.py) 기준 한 단계 위 = 프로젝트 루트
-_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CONFIG_PATH = os.path.join(_ROOT, "config.json")
+# 설정 파일 위치: 소스 실행=프로젝트 루트, 배포(exe)=exe 와 같은 폴더
+CONFIG_PATH = os.path.join(paths.base_dir(), "config.json")
 
 # 설정의 기본값. 파일이 없거나 키가 빠지면 이 값으로 채운다.
 DEFAULT_CONFIG = {
