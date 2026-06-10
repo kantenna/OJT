@@ -123,6 +123,45 @@ python src/main.py
 9600bps 로 CAS 형식 문자열을 1초마다 송신한다. 업로드 후 **시리얼 모니터를 닫고**
 프로그램에서 해당 COM 포트를 선택해 테스트한다.
 
+## 배포 (exe 만들기)
+
+현장 PC 에 Python 이 없어도 실행되도록 [PyInstaller](https://pyinstaller.org/) 로
+하나의 `.exe` 로 묶는다. **프로젝트 루트**(이 README 가 있는 폴더)에서 실행한다.
+
+```
+pip install pyinstaller
+python -m PyInstaller --onefile --windowed --name 저울데이터수집프로그램 src/main.py
+```
+
+- `--onefile` : 파일 하나(.exe)로 묶기
+- `--windowed` : 콘솔창 없이 GUI 만 실행
+- `--name` : 결과 exe 이름
+- `python -m PyInstaller` : `pyinstaller` 명령이 PATH 에 없을 때도 동작
+
+빌드 결과:
+
+```
+dist/
+└── 저울데이터수집프로그램.exe
+```
+
+### 배포 패키지 구성
+
+exe 만으로는 부족하다. `config.json` 을 **exe 와 같은 폴더**에 둬야 한다.
+(코드가 frozen 상태에서는 exe 위치 기준으로 config·logs 를 찾는다 — `src/paths.py`)
+
+```
+배포폴더/
+├── 저울데이터수집프로그램.exe
+├── config.json              # 현장에서 포트만 바꾸면 됨
+└── logs/                    # 실행 시 자동 생성, 동작 로그가 쌓임
+    └── scale_YYYY-MM-DD.log
+```
+
+이 폴더째 현장 PC 로 복사하면 더블클릭으로 실행된다.
+
+> 빌드 부산물 `build/`, `dist/`, `*.spec` 은 `.gitignore` 로 git 에서 제외된다.
+
 ## 데이터 형식 / 지원 저울
 
 - CAS (CK200SC): `ST,GS,   37.39,kg`
