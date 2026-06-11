@@ -16,7 +16,7 @@ import json
 import logging
 from dataclasses import dataclass
 
-import paths   # 실행 환경(소스/배포)에 맞는 기준 폴더
+from common import paths   # 실행 환경(소스/배포)에 맞는 기준 폴더
 
 log = logging.getLogger("recipe")
 

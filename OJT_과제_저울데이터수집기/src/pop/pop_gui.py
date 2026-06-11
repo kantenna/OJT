@@ -19,9 +19,9 @@ import logging
 import tkinter as tk
 from tkinter import ttk
 
-from serial_reader import SerialReader
-import scale_parser
-import judge as judge_mod
+from common.serial_reader import SerialReader
+from common import scale_parser
+from pop import judge as judge_mod
 
 log = logging.getLogger("pop")
 
