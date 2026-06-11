@@ -15,10 +15,10 @@ from tkinter import ttk
 
 from serial.tools import list_ports
 
-from serial_reader import SerialReader
-import scale_parser
-import clipboard_util
-import config_manager
+from common.serial_reader import SerialReader
+from common import scale_parser
+from display import clipboard_util
+from display import config_manager
 
 try:
     import winreg   # Windows 전용 — com0com 같은 가상 포트 탐지에 사용

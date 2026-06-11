@@ -17,7 +17,7 @@ import os
 import json
 import logging
 
-import paths   # 실행 환경(소스/배포)에 맞는 기준 폴더 제공
+from common import paths   # 실행 환경(소스/배포)에 맞는 기준 폴더 제공
 
 log = logging.getLogger("config")
 
