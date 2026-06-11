@@ -1,0 +1,24 @@
+{
+  "product": "테스트 배합 (원료1 + 원료2)",
+  "batch_no": "P-20260611-01",
+  "ingredients": [
+    {
+      "name": "원료1",
+      "spec": "",
+      "target_kg": 10.0,
+      "tolerance_kg": 0.1,
+      "port": "COM6",
+      "maker": "CAS",
+      "tare_kg": 0.0
+    },
+    {
+      "name": "원료2",
+      "spec": "",
+      "target_kg": 0.7,
+      "tolerance_kg": 0.02,
+      "port": "COM8",
+      "maker": "AND",
+      "tare_kg": 0.0
+    }
+  ]
+}
