@@ -74,6 +74,7 @@ class SerialReader:
         try:
             with serial.Serial(self.port, self.baudrate, timeout=1) as ser:
                 log.info("%s 포트 열림 (%dbps)", self.port, self.baudrate)
+                ser.reset_input_buffer()   # 잔류 버퍼 제거 → 첫 줄이 이전 데이터와 엉키지 않게
                 while self._running:
                     raw = ser.readline()           # 한 줄 대기 (timeout 1초)
                     if not raw:

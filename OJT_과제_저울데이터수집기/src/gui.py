@@ -20,7 +20,39 @@ import scale_parser
 import clipboard_util
 import config_manager
 
+try:
+    import winreg   # Windows 전용 — com0com 같은 가상 포트 탐지에 사용
+except ImportError:
+    winreg = None   # 다른 OS면 None (레지스트리 보완 생략)
+
 log = logging.getLogger("gui")
+
+
+def list_serial_ports():
+    """
+    선택 가능한 COM 포트 이름 목록을 돌려준다.
+
+    pyserial 의 list_ports 는 com0com 같은 가상 포트를 표준 'Ports' 분류가
+    아니라는 이유로 놓친다. 그래서 Windows 레지스트리의 SERIALCOMM(실제 활성
+    시리얼 포트 목록)도 함께 읽어 병합한다. → com0com COM5/COM6 도 잡힌다.
+    """
+    names = {p.device for p in list_ports.comports()}
+    if winreg is not None:
+        try:
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                                 r"HARDWARE\DEVICEMAP\SERIALCOMM")
+            i = 0
+            while True:
+                try:
+                    _, value, _ = winreg.EnumValue(key, i)  # 값 = "COM5" 등
+                    names.add(value)
+                    i += 1
+                except OSError:
+                    break
+            winreg.CloseKey(key)
+        except OSError:
+            pass  # 키가 없거나(시리얼 포트 0개) 접근 실패 → list_ports 결과만 사용
+    return sorted(names)
 
 
 class ScaleApp:
@@ -73,8 +105,8 @@ class ScaleApp:
         self._poll_queue()
 
     def refresh_ports(self):
-        """연결된 COM 포트 목록을 콤보박스에 채운다."""
-        ports = [p.device for p in list_ports.comports()]
+        """연결된 COM 포트 목록을 콤보박스에 채운다 (가상 포트 포함)."""
+        ports = list_serial_ports()
         self.port_box["values"] = ports
         if ports and not self.port_box.get():
             # config 에 저장된 포트가 목록에 있으면 그걸, 없으면 첫 번째를 기본 선택
