@@ -22,7 +22,7 @@ import threading
 import serial                       # pyserial (설치: pip install pyserial)
 from serial.tools import list_ports  # 연결된 COM 포트 목록 조회용
 
-import scale_parser                 # 같은 src 폴더의 scale_parser.py (무게 추출 담당)
+from common import scale_parser     # 무게 추출 담당 (common 패키지)
 
 
 def show_ports():

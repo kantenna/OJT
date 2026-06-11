@@ -25,5 +25,5 @@ def base_dir():
     if getattr(sys, "frozen", False):
         # PyInstaller exe 로 실행 중 → exe 가 있는 폴더
         return os.path.dirname(sys.executable)
-    # 소스(.py)로 실행 중 → 이 파일(src/paths.py) 기준 한 단계 위 = 프로젝트 루트
-    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    # 소스(.py)로 실행 중 → 이 파일(src/common/paths.py) 기준 두 단계 위 = 프로젝트 루트
+    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
