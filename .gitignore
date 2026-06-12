@@ -6,6 +6,9 @@ __pycache__/
 # 하위 폴더 어디에 있든 .log 는 모두 무시
 *.log
 
+# SQLite 실적 DB (실행 중 생성되는 데이터 — 코드 아님)
+*.db
+
 # PyInstaller 빌드 산출물 (9단계 배포 시)
 build/
 dist/

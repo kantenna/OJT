@@ -22,6 +22,7 @@ from tkinter import ttk
 from common.serial_reader import SerialReader
 from common import scale_parser
 from pop import judge as judge_mod
+from pop import db
 
 log = logging.getLogger("pop")
 
@@ -137,6 +138,10 @@ class WeighingPOP:
         self.last_judgment = None
         self.last_measured = None
 
+        # 배치 시작(첫 원료)이면 batch 테이블에 '진행중' 기록
+        if self.idx == 0:
+            db.save_batch(self.batch_no, self.recipe.product, "진행중")
+
         # 상단 정보 갱신
         self.row_vals["자재명"].config(text=ing.name)
         self.row_vals["이론사용중량"].config(
@@ -221,6 +226,7 @@ class WeighingPOP:
             "forced": forced,
         }
         self.results.append(rec)
+        db.save_weighing(rec)        # SQLite weighing 테이블에 INSERT
         level = log.warning if forced else log.info
         level("칭량 %s: %s 실투입 %.2fkg [%s]%s",
               "강제저장" if forced else "통과", ing.name, j.net, j.verdict,
@@ -265,6 +271,7 @@ class WeighingPOP:
         self.pass_btn.config(state="disabled")
         self.next_btn.config(state="normal")   # 다음 배치 버튼 열기
         self.status.config(text="[다음 배치 시작]을 누르면 새 LOT 으로 이어집니다.")
+        db.save_batch(self.batch_no, self.recipe.product, "완료")   # 배치 상태 갱신
         log.info("배치 완료: %s, 원료 %d건", self.batch_no, len(self.results))
 
     def _next_batch(self):
